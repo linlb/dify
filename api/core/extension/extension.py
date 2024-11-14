@@ -1,4 +1,4 @@
-from core.extension.extensible import ModuleExtension, ExtensionModule
+from core.extension.extensible import ExtensionModule, ModuleExtension
 from core.external_data_tool.base import ExternalDataTool
 from core.moderation.base import Moderation
 
@@ -6,10 +6,7 @@ from core.moderation.base import Moderation
 class Extension:
     __module_extensions: dict[str, dict[str, ModuleExtension]] = {}
 
-    module_classes = {
-        ExtensionModule.MODERATION: Moderation,
-        ExtensionModule.EXTERNAL_DATA_TOOL: ExternalDataTool
-    }
+    module_classes = {ExtensionModule.MODERATION: Moderation, ExtensionModule.EXTERNAL_DATA_TOOL: ExternalDataTool}
 
     def init(self):
         for module, module_class in self.module_classes.items():

@@ -1,7 +1,7 @@
 import { Popover, Transition } from '@headlessui/react'
 import { Fragment, cloneElement, useRef } from 'react'
-import cn from 'classnames'
 import s from './style.module.css'
+import cn from '@/utils/classnames'
 
 export type HtmlContentProps = {
   onClose?: () => void
@@ -13,10 +13,11 @@ type IPopover = {
   htmlContent: React.ReactElement<HtmlContentProps>
   popupClassName?: string
   trigger?: 'click' | 'hover'
-  position?: 'bottom' | 'br'
+  position?: 'bottom' | 'br' | 'bl'
   btnElement?: string | React.ReactNode
   btnClassName?: string | ((open: boolean) => string)
   manualClose?: boolean
+  disabled?: boolean
 }
 
 const timeoutDuration = 100
@@ -30,6 +31,7 @@ export default function CustomPopover({
   className,
   btnClassName,
   manualClose,
+  disabled = false,
 }: IPopover) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const timeOutRef = useRef<NodeJS.Timeout | null>(null)
@@ -60,6 +62,7 @@ export default function CustomPopover({
             >
               <Popover.Button
                 ref={buttonRef}
+                disabled={disabled}
                 className={`group ${s.popupBtn} ${open ? '' : 'bg-gray-100'} ${!btnClassName
                   ? ''
                   : typeof btnClassName === 'string'
@@ -71,7 +74,13 @@ export default function CustomPopover({
               </Popover.Button>
               <Transition as={Fragment}>
                 <Popover.Panel
-                  className={`${s.popupPanel} ${position === 'br' ? 'right-0' : 'translate-x-1/2 left-1/2'} ${className}`}
+                  className={cn(
+                    s.popupPanel,
+                    position === 'bottom' && '-translate-x-1/2 left-1/2',
+                    position === 'bl' && 'left-0',
+                    position === 'br' && 'right-0',
+                    className,
+                  )}
                   {...(trigger !== 'hover'
                     ? {}
                     : {

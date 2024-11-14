@@ -5,7 +5,7 @@ import { useBoolean } from 'ahooks'
 import { useContext } from 'use-context-selector'
 import { useRouter } from 'next/navigation'
 import DatasetDetailContext from '@/context/dataset-detail'
-import type { FullDocumentDetail } from '@/models/datasets'
+import type { CrawlOptions, CustomFile, FullDocumentDetail } from '@/models/datasets'
 import type { MetadataType } from '@/service/datasets'
 import { fetchDocumentDetail } from '@/service/datasets'
 
@@ -14,6 +14,8 @@ import StepTwo from '@/app/components/datasets/create/step-two'
 import AccountSetting from '@/app/components/header/account-setting'
 import AppUnavailable from '@/app/components/base/app-unavailable'
 import { useDefaultModel } from '@/app/components/header/account-setting/model-provider-page/hooks'
+import { ModelTypeEnum } from '@/app/components/header/account-setting/model-provider-page/declarations'
+import type { NotionPage } from '@/models/common'
 
 type DocumentSettingsProps = {
   datasetId: string
@@ -26,7 +28,7 @@ const DocumentSettings = ({ datasetId, documentId }: DocumentSettingsProps) => {
   const [isShowSetAPIKey, { setTrue: showSetAPIKey, setFalse: hideSetAPIkey }] = useBoolean()
   const [hasError, setHasError] = useState(false)
   const { indexingTechnique, dataset } = useContext(DatasetDetailContext)
-  const { data: embeddingsDefaultModel } = useDefaultModel(2)
+  const { data: embeddingsDefaultModel } = useDefaultModel(ModelTypeEnum.textEmbedding)
 
   const saveHandler = () => router.push(`/datasets/${datasetId}/documents/${documentId}`)
 
@@ -39,7 +41,7 @@ const DocumentSettings = ({ datasetId, documentId }: DocumentSettingsProps) => {
       page_id: documentDetail?.data_source_info.notion_page_id,
       page_name: documentDetail?.name,
       page_icon: documentDetail?.data_source_info.notion_page_icon,
-      type: documentDetail?.data_source_info.type,
+      type: documentDetail?.data_source_type,
     }
   }, [documentDetail])
   useEffect(() => {
@@ -67,15 +69,26 @@ const DocumentSettings = ({ datasetId, documentId }: DocumentSettingsProps) => {
         {!documentDetail && <Loading type='app' />}
         {dataset && documentDetail && (
           <StepTwo
-            hasSetAPIKEY={!!embeddingsDefaultModel}
+            isAPIKeySet={!!embeddingsDefaultModel}
             onSetting={showSetAPIKey}
             datasetId={datasetId}
             dataSourceType={documentDetail.data_source_type}
-            notionPages={[currentPage]}
+            notionPages={[currentPage as unknown as NotionPage]}
+            websitePages={[
+              {
+                title: documentDetail.name,
+                source_url: documentDetail.data_source_info?.url,
+                markdown: '',
+                description: '',
+              },
+            ]}
+            websiteCrawlProvider={documentDetail.data_source_info?.provider}
+            websiteCrawlJobId={documentDetail.data_source_info?.job_id}
+            crawlOptions={documentDetail.data_source_info as unknown as CrawlOptions}
             indexingType={indexingTechnique || ''}
             isSetting
             documentDetail={documentDetail}
-            files={[documentDetail.data_source_info.upload_file]}
+            files={[documentDetail.data_source_info.upload_file as CustomFile]}
             onSave={saveHandler}
             onCancel={cancelHandler}
           />
